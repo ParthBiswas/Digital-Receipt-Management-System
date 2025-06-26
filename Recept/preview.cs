@@ -16,11 +16,15 @@ namespace Recept
     {
         OdbcConnection con = new OdbcConnection("Dsn=bintpex");
         OdbcCommand mcd;
+        List<DataRow> results = new List<DataRow>();
+        int currentIndex = 0;
+
         public preview()
         {
             InitializeComponent();
 
             cusid.CharacterCasing = CharacterCasing.Upper;
+            Memid.CharacterCasing = CharacterCasing.Upper;
         }
 
         private void label2_Click(object sender, EventArgs e)
@@ -31,30 +35,45 @@ namespace Recept
         {
             try
             {
-                string query = "SELECT ID, Memid, cusname, amt, TRMODE, Trid FROM Rec WHERE cusid = ? AND reg_date= ?";
+                if (results.Count == 0)
+                {
+                    string query = "SELECT ID, cusname, amt, TRMODE, Trid FROM Rec WHERE Memid= ? AND cusid = ? AND reg_date= ?";
                 OdbcCommand cmd = new OdbcCommand(query, con);
+                    cmd.Parameters.AddWithValue("@Memid", Memid.Text);
                 cmd.Parameters.AddWithValue("@cusid", cusid.Text);
                 cmd.Parameters.AddWithValue("@reg_date", Convert.ToDateTime(date.Text));
 
-                con.Open();
-                OdbcDataReader reader = cmd.ExecuteReader();
+                    OdbcDataAdapter adapter = new OdbcDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt);
 
-                if (reader.Read())
+                    if (dt.Rows.Count == 0)
                 {
-                    Memid.Text = reader["Memid"].ToString(); // Make sure `memberid` TextBox exists
-                    cusname.Text = reader["cusname"].ToString();    // Optional label to show name
-                    amt.Text = reader["amt"].ToString(); // Optional
-                    Tmode.Text = reader["TRMODE"].ToString();
-                    reno.Text = reader["ID"].ToString();
-                    trid.Text = reader["trid"].ToString();
-                }
-                else
-                {
-                    MessageBox.Show("Customer not found.");
+                        MessageBox.Show("No records found.");
+                        return;
+                    }
+
+                    results = dt.AsEnumerable().ToList();
+                    currentIndex = 0;
                 }
 
-                reader.Close();
-                con.Close();
+                if (results.Count > 0 && currentIndex < results.Count)
+                {
+                    DataRow row = results[currentIndex];
+                    cusname.Text = row["cusname"].ToString();
+                    amt.Text = row["amt"].ToString();
+                    Tmode.Text = row["TRMODE"].ToString();
+                    reno.Text = row["ID"].ToString();
+                    trid.Text = row["Trid"].ToString();
+
+                    currentIndex++;
+                    if (currentIndex >= results.Count)
+                {
+                        MessageBox.Show("End of records. Restarting...");
+                        currentIndex = 0; // Loop back to first
+                    }
+                }
+
             }
             catch (Exception ex)
             {

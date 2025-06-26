@@ -161,7 +161,10 @@
             this.Memid.Location = new System.Drawing.Point(321, 237);
             this.Memid.Multiline = true;
             this.Memid.Name = "Memid";
+<<<<<<< HEAD
+=======
             this.Memid.ReadOnly = true;
+>>>>>>> 9c317c9f468e5d4febd3af50a11818b7713bb5b9
             this.Memid.Size = new System.Drawing.Size(263, 43);
             this.Memid.TabIndex = 19;
             // 
